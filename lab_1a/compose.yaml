@@ -1,0 +1,8 @@
+name: lab_1a
+services:
+    lab_1a:
+        build:
+            context: .
+        container_name: lab_1a
+        image: lab_1a
+        command: ["sleep", "infinity"]
