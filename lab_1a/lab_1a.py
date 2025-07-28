@@ -3,7 +3,13 @@ import matplotlib.pyplot as plt
 import torch
 import math
 
-data = np.genfromtxt('Penn-GPA-and-HS-Data.csv', delimiter=',', skip_header=1)
+data = data = torch.from_numpy(
+           np.genfromtxt (
+               'Penn-GPA-and-HS-Data.csv',
+               delimiter = ",",
+               skip_header=1,
+               dtype = float ) )
+
 
 hs_gpa      = data[:,1]
 sat_scores  = data[:,2]
@@ -47,14 +53,14 @@ i = 0
 # print(f"penn_gpa shape: {penn_gpa.shape:.3f}")
 # print(f"y shape: {y.shape:.3f}")
 
-x = hs_gpa
-y = penn_gpa
+x = hs_gpa.unsqueeze(1)
+y = penn_gpa.unsqueeze(1)
 
 alpha_star = (x.T @ y) / (x.T @ x)
 
 
-print(f"alpha_star = {alpha_star:.3f}")
-print(f"Predicted_Penn_GPA = {alpha_star:.3f} * High_School_GPA ")
+print(f"alpha_star = {alpha_star.item():.3f}")
+print(f"Predicted_Penn_GPA = {alpha_star.item():.3f} * High_School_GPA ")
 
 y_hat = x * alpha_star
 
@@ -75,7 +81,14 @@ print(f"root_mean_squared_error = {root_mean_squared_error:.3f}")
 
 # Linear Regression
 
-x = np.stack((hs_gpa, sat_scores), axis = 1)
+x = data[:,1:3]
 
 print(x)
 
+w_star = torch.linalg.inv(x.T @ x) @ x.T @ y
+
+print(w_star)
+
+# w_start = (x.T @ y) / torch.linalg.det(x.T @ x)
+
+# print(w_star)
