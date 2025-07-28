@@ -3,6 +3,6 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip update & pip install numpy \
-    matplotlib \
-    torch
+RUN pip install matplotlib \
+    torch \
+    numpy

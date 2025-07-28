@@ -1,52 +1,81 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import math
 
-# We can also give nicknames to sublibraries. E.g., to have access to neural network
-# functions we re-import the "torch.nn" library and give it the nickname "nn"
-import torch.nn as nn
+data = np.genfromtxt('Penn-GPA-and-HS-Data.csv', delimiter=',', skip_header=1)
 
-# This is a technicality. It has to be specified.
-torch.set_default_dtype(torch.float64)
+hs_gpa      = data[:,1]
+sat_scores  = data[:,2]
+penn_gpa    = data[:,4]
 
-# Parameters for plots. It controls their appearance. That's all.
-plt.style.use('default')
-plt.rcParams['font.size'] = '14'
-
-
-penn_gpa = []
-hs_gpa = []
-sat = []
-
-data = torch.from_numpy(
-           np.genfromtxt (
-               'Penn-GPA-and-HS-Data.csv',
-               delimiter = ",",
-               skip_header=1,
-               dtype = float ) )
-
-print(f"\nNumber of students: {data.shape[0]}")
-print(f"Number of variables: {data.shape[1]}\n")
-
-
-penn_gpa = data[:,4]
-hs_gpa = data[:,1]
-sat = data[:,2]
-
-plt.plot(hs_gpa, penn_gpa)
-plt.title("Penn GPA vs HS GPA")
+plt.plot(hs_gpa, penn_gpa, ".")
+plt.title("Penn GPA vs. HS GPA")
 plt.xlabel("HS GPA")
 plt.ylabel("Penn GPA")
+plt.savefig("penn_gpa_v_hs_gpa.jpg")
 
-plt.savefig("penn_gpa_v_hs_gpa.png")
+plt.clf()
 
-plt.show()
-
-plt.plot(sat, penn_gpa)
-plt.title("Penn GPA vs SAT Score")
-plt.xlabel("SAT Score")
+plt.plot(sat_scores, penn_gpa, ".")
+plt.title("Penn GPA vs. SAT Scores")
+plt.xlabel("SAT Scores")
 plt.ylabel("Penn GPA")
+plt.xlim([1380, 1620])
+plt.savefig("penn_gpa_v_sat_scores.jpg")
 
-plt.savefig("penn_gpa_v_sat.png")
+# find a* = sum (x_i * y_i) / sum (x_i^2)
 
-plt.show()
+num = 0
+denom = 0
+i = 0
+
+# iterative approach
+# while i < len(penn_gpa):
+#     num += penn_gpa[i] * hs_gpa[i]
+#     denom += hs_gpa[i] * hs_gpa[i]
+#     i += 1
+
+# alpha_star = num / denom
+
+# matrix multiplication approach
+
+# x = hs_gpa.unsqueeze(1)
+# y = penn_gpa.unsqueeze(1)
+# print(f"hs_gpa shape: {hs_gpa.shape:.3f}")
+# print(f"x shape: {x.shape:.3f}")
+# print(f"penn_gpa shape: {penn_gpa.shape:.3f}")
+# print(f"y shape: {y.shape:.3f}")
+
+x = hs_gpa
+y = penn_gpa
+
+alpha_star = (x.T @ y) / (x.T @ x)
+
+
+print(f"alpha_star = {alpha_star:.3f}")
+print(f"Predicted_Penn_GPA = {alpha_star:.3f} * High_School_GPA ")
+
+y_hat = x * alpha_star
+
+plt.clf()
+
+plt.plot(x, y_hat)
+plt.plot(hs_gpa, penn_gpa, ".")
+plt.title("Penn GPA vs. HS GPA with Trendline1")
+plt.xlabel("HS GPA")
+plt.ylabel("Penn GPA")
+plt.savefig("penn_gpa_v_hs_gpa_with_trendline.jpg")
+
+v = y - alpha_star * x
+
+root_mean_squared_error = math.sqrt((v.T @ v) / len(x))
+
+print(f"root_mean_squared_error = {root_mean_squared_error:.3f}")
+
+# Linear Regression
+
+x = np.stack((hs_gpa, sat_scores), axis = 1)
+
+print(x)
+
