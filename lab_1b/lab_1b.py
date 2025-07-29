@@ -14,8 +14,7 @@ sat = data[:,2].unsqueeze(1)
 penn_gpa = data[:,4].unsqueeze(1)
 
 def root_mean_squared_error(x, y, w):
-    v = y - torch.matmul(x, w)
-    return math.sqrt(torch.matmul(v.T, v) / len(y))
+    return math.sqrt(nn.MSELoss(torch.matmul(x, w), y))
 
 # Normalize inputs
 
@@ -35,13 +34,18 @@ x = torch.stack((normalize_vector(hs_gpa), normalize_vector(sat)), dim=1).squeez
 
 y = normalize_vector(penn_gpa)
 
+def gradient(x, y, parameters):
+    return x.T @ (y - torch.matmul(x, parameters)) / len(y)
+
+
 # gradient descent 
 
 i = 0
 step_size = 0.1
 iterations = 100
+batch_size = 10
 
-def train(x, y, iterations, step_size):
+def train(x, y, iterations, step_size, batch_size):
     i = 0
     loss_history = []
 
@@ -52,8 +56,13 @@ def train(x, y, iterations, step_size):
         # Record loss
         loss_history.append(root_mean_squared_error(x, y, parameters))
 
+        # Sample data set
+        batch = torch.randint(high=x.shape[0], size = (batch_size,))  
+        x_batch = x[batch]
+        y_batch = y[batch]
+
         # calculate gradient
-        gradient = x.T @ (y - torch.matmul(x, parameters)) / len(y)
+        gradient = gradient(x_batch, y_batch, parameters)
 
         # calculate new params
         parameters = parameters + step_size * gradient
@@ -61,8 +70,11 @@ def train(x, y, iterations, step_size):
         i += 1
 
     return [parameters, loss_history]
+
+
+
     
-[parameters, loss_history] = train(x, y, iterations, step_size)
+[parameters, loss_history] = train(x, y, iterations, step_size, batch_size)
 
 plt.plot(loss_history)
 plt.title("Root Mean Squared Error")
@@ -75,15 +87,15 @@ print(f"trained params: {parameters[0].item():.3f}, {parameters[1].item():.3f}")
 
 step_size = 1
 
-[parameters, loss_history] = train(x, y, iterations, step_size)
+[parameters, loss_history] = train(x, y, iterations, step_size, batch_size)
 
 plt.plot(loss_history)
 
 step_size = 0.01
 
-[parameters, loss_history] = train(x, y, iterations, step_size)
+[parameters, loss_history] = train(x, y, iterations, step_size, batch_size)
 
 plt.plot(loss_history)
 
-
 plt.savefig("root_mean_squared_error.jpg")
+
